@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { useIsMobile } from "../hooks/use-mobile";
 import { motion, AnimatePresence } from "framer-motion";
 
 // Frases rotativas para el botón cerrado
@@ -13,11 +14,24 @@ const phrases = [
 ];
 
 export default function FloatingChat() {
+  const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
   const [message, setMessage] = useState("");
-  const [messages, setMessages] = useState<string[]>([]);
+  const [messages, setMessages] = useState<
+    { role: "user" | "ai"; text: string }[]
+  >([]);
   const [showHistory, setShowHistory] = useState(false);
   const [phraseIdx, setPhraseIdx] = useState(0);
+  const [loading, setLoading] = useState(false);
+
+  // Ref para el contenedor de mensajes
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  // Scroll automático al final cuando cambian los mensajes
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages, loading]);
 
   // Detecta si hay texto en el input para mostrar historial
   useEffect(() => {
@@ -31,6 +45,35 @@ export default function FloatingChat() {
     }, 3500);
     return () => clearInterval(interval);
   }, []);
+
+  // Función para enviar mensaje a Gemini
+  const sendMessage = async () => {
+    if (!message.trim()) return;
+    const userMsg = message;
+    setMessages((prev) => [...prev, { role: "user", text: userMsg }]);
+    setMessage("");
+    setLoading(true);
+    try {
+      const res = await fetch("/api/gemini", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: userMsg }),
+      });
+      const data = await res.json();
+      // Gemini responde en data.candidates[0].content.parts[0].text
+      const aiText =
+        data?.candidates?.[0]?.content?.parts?.[0]?.text || "(Sin respuesta)";
+      setMessages((prev) => [...prev, { role: "ai", text: aiText }]);
+    } catch (e) {
+      setMessages((prev) => [
+        ...prev,
+        { role: "ai", text: "Ocurrió un error al conectar con Gemini." },
+      ]);
+    }
+    setLoading(false);
+  };
+
+  if (isMobile) return null;
 
   return (
     <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 flex flex-col items-center">
@@ -74,9 +117,8 @@ export default function FloatingChat() {
               </button>
             </div>
             <div className="-mt-2 mb-1 text-xs text-neutral-500 text-left pl-1 select-none">
-              Powered by IA
+              Powered by Gemini
             </div>
-            {/* Aquí irían los mensajes del chat si se implementa backend */}
             {showHistory && (
               <div className="flex-1 overflow-y-auto mb-2 flex flex-col gap-2 pr-2">
                 {messages.length === 0 && (
@@ -88,11 +130,22 @@ export default function FloatingChat() {
                 {messages.map((msg, idx) => (
                   <div
                     key={idx}
-                    className="self-end bg-black text-white rounded-2xl px-4 py-2 max-w-[70%] text-sm shadow"
+                    className={
+                      msg.role === "user"
+                        ? "self-end bg-black text-white rounded-2xl px-4 py-2 max-w-[70%] text-sm shadow"
+                        : "self-start bg-neutral-100 text-black rounded-2xl px-4 py-2 max-w-[70%] text-sm shadow"
+                    }
                   >
-                    {msg}
+                    {msg.text}
                   </div>
                 ))}
+                {loading && (
+                  <div className="self-start text-neutral-400 text-sm px-4 py-2">
+                    Pensando...
+                  </div>
+                )}
+                {/* Elemento invisible para hacer scroll al final */}
+                <div ref={messagesEndRef} />
               </div>
             )}
             <div className="flex gap-2">
@@ -104,22 +157,17 @@ export default function FloatingChat() {
                 onChange={(e) => setMessage(e.target.value)}
                 onFocus={() => setShowHistory(true)}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter" && message.trim()) {
-                    setMessages((prev) => [...prev, message]);
-                    setMessage("");
+                  if (e.key === "Enter" && message.trim() && !loading) {
+                    sendMessage();
                   }
                 }}
+                disabled={loading}
               />
               <button
                 className="bg-black hover:bg-neutral-800 text-white rounded-full w-10 h-10 flex items-center justify-center transition disabled:opacity-50"
-                onClick={() => {
-                  if (message.trim()) {
-                    setMessages((prev) => [...prev, message]);
-                    setMessage("");
-                  }
-                }}
+                onClick={sendMessage}
                 aria-label="Enviar mensaje"
-                disabled={!message.trim()}
+                disabled={!message.trim() || loading}
               >
                 {/* Ícono de enviar tipo WhatsApp */}
                 <svg
