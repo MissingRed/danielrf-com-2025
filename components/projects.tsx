@@ -76,7 +76,7 @@ export default function Projects() {
 
         // Fetch repositories
         const reposResponse = await fetch(
-          "https://api.github1.com/users/MissingRed/repos"
+          "https://api.github.com/users/MissingRed/repos"
         );
         const reposData = await reposResponse.json();
 

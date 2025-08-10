@@ -36,13 +36,13 @@ export default function GitHubStats() {
 
         // Fetch user info
         const userResponse = await fetch(
-          "https://api.github1.com/users/MissingRed"
+          "https://api.github.com/users/MissingRed"
         );
         const userData = await userResponse.json();
 
         // Fetch repositories
         const reposResponse = await fetch(
-          "https://api.github1.com/users/MissingRed/repos?per_page=100"
+          "https://api.github.com/users/MissingRed/repos?per_page=100"
         );
         const reposData = await reposResponse.json();
 
