@@ -76,7 +76,7 @@ export default function Contact() {
                   viewBox="0 0 24 24"
                   strokeWidth={0.8}
                   stroke="currentColor"
-                  className="w-14 h-14 text-black mb-4"
+                  className="w-14 h-14 mb-4"
                 >
                   <path
                     strokeLinecap="round"
