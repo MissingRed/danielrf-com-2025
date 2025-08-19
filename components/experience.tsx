@@ -23,7 +23,7 @@ export default function Experience() {
       technologies: ["Vue.js", "Nuxt.js", "Laravel", "PostgreSQL", "GCP"],
       responsibilities: [
         "Arquitectura e implementación de una arquitectura de microservicios escalable",
-        "Lideré un equipo de 5 desarrolladores utilizando metodologías ágiles",
+        "Lideré un equipo de 2 desarrolladores utilizando metodologías ágiles",
         "Optimicé el rendimiento de la aplicación, reduciendo los tiempos de carga en un 40%",
         "Implementé pipelines de CI/CD con GitHub Actions y AWS",
         "Colaboré con diseñadores UX para crear interfaces de usuario intuitivas",
