@@ -14,12 +14,10 @@ export async function POST(req: NextRequest) {
   });
 
   const mailOptions = {
-    from: email || "no-reply@danielrf.com",
+    from: email,
     to: "rodriguezdaniel048@gmail.com",
     subject: "Daniel!, Nuevo mensaje desde tú chat IA del portafolio",
     text:
-      `Nombre: ${name || "(no proporcionado)"}\n` +
-      `Correo: ${email || "(no proporcionado)"}\n` +
       `Mensaje: ${message}`,
   };
 
